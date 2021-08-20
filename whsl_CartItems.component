@@ -1,0 +1,1720 @@
+<apex:component >
+    <script id="whsl_KartItemsView" type="text/template">
+        {{> removeInvalidModal}}
+        {{> qtyChangedModal}}
+        {{#ifNotEquals this.cartDetail.cartStatus 'Repricing'}}
+        <div class="cc_cartscale_pagination_top">
+            {{> cartItemsPagination pagination-location='top'}}
+        </div>
+        {{/ifNotEquals}}
+        {{#if this.cartDetail.repricedDate}}
+            {{#ifNotEquals this.cartDetail.cartItemsInvalid 0}}
+                <hr>
+                <div class="row cc_row_remove_invalid">
+                    <div class="col-md-5 cc_row_remove_invalid_mgn">
+                        <button type="button" class="btn btn-primary btn-sm cc_remove_invalid_btn" data-target="#removeInvalidModal" data-toggle="modal">{{pageLabelMap 'CartInc_RemoveInvalidButton'}}</button>
+                    </div>
+                </div>
+            {{/ifNotEquals}}
+        {{/if}}
+        <hr>       
+        <div class="row cc_row_cartitem_container">
+            <div class="col-xs-12 cc_col_xs_12_cartitem_container">
+                <div id="cart_items_container" class="cc_cartscale_cartitem_container">
+                    <div class="cc_cartscale_header">
+                        <div class="row cc_row_msgs">
+                            <div class="col-md-12 cc_messaging_block">
+                                <div class="messagingSection-Error cc_msg_section_error" role="alert" style="display: none"></div>
+                                <div class="messagingAction-Error alert alert-danger cc_msg_action_error" role="alert" style="display: none"></div>
+
+                                <div class="messagingSection-Warning cc_msg_section_warning" role="alert" style="display: none"></div>
+                                <div class="messagingAction-Warning alert alert-warning cc_msg_action_warning" role="alert" style="display: none"></div>
+
+                                <div class="messagingSection-Info cc_msg_section_info" role="alert" style="display: none"></div>
+                                <div class="messagingAction-Info alert alert-info cc_msg_action_info" role="alert" style="display: none"></div>
+                            </div>
+                        </div>
+                    </div>
+                    {{#if this.cartItems.models}}
+                    <div class="row cart-items-heading hidden-xs">
+                        <div class="col-lg-5 col-md-5 col-sm-5">
+                            {{pageLabelMap 'WHSL_Productsdescription'}}
+                        </div>
+                        <div class="col-md-1 cat-label hidden-md hidden-sm">
+                            {{pageLabelMap 'WHSL_ProductCategory'}}
+                        </div>
+                        <div class="col-lg-1 col-md-2 col-sm-1 price-label">
+                            {{pageLabelMap 'PriceList_Price'}}
+                        </div>
+                        <div class="col-lg-1 col-md-1 col-sm-2 uom-label">
+                            {{pageLabelMap 'WHSL_UOM'}}
+                        </div>
+                        <div class="col-lg-1 col-md-2 col-sm-1 amount-label">
+                            {{pageLabelMap 'whsl_Amount'}}
+                        </div>
+                        <div class="col-lg-1 col-md-1 col-sm-2 qty-label">
+                            {{pageLabelMap 'CartInc_AttributeQuantity'}}
+                        </div>
+                    </div>
+                        <div class="cc_cartscale_cartitem_list">
+                        
+                            {{#each this.cartItems.models}}
+                            <div class="{{this.attributes.sfid}} cc_cart_item" data-sku="{{this.attributes.product.SKU}}">
+                                {{> cartItemsDesktop}}
+                            </div>
+                            {{/each}}
+                            {{#ifNotEquals this.cartItems.state.q ''}}
+                            {{#ifEquals this.cartDetail.cartItemsTotal 0}}
+                            <div class="cc_cartscale_noresults">
+                                <h4 class="cc_cartscale_noresults_header">
+                                    {{pageLabelMap 'CartInc_Search_NoResults'}}
+                                </h4>
+                                <p class="cc_cartscale_noresults_message">
+                                    {{pageLabelMap 'CartInc_Search_NoResultsMessage' this.cartItems.state.q}}
+                                </p>
+                            </div>
+                            {{/ifEquals}}
+                            {{/ifNotEquals}}
+                        </div>
+                        {{/if}}
+                </div>
+            </div>
+        </div>
+        <div class="cc_cartscale_pagination_bottom">
+            {{#ifNotEquals this.cartDetail.cartItemsTotal 0}}
+            {{> cartItemsPagination pagination-location='bottom'}}
+            {{/ifNotEquals}}
+        </div>
+    </script>
+
+    <script id="KartItemsPaginationView" type="text/template">
+        <div class="cc_cartscale_page_{{this.cartItems.state.currentPage}} cc_cartscale_pages_{{this.cartItems.state.totalPages}} cc_cartscale_items_{{this.cartItems.state.totalRecords}}">
+            {{#ifEquals pagination-location 'top'}}
+                <div class="row cc_cartscale_searchsort">
+                    <div class="col-md-4 col-sm-4 col-xs-12">
+                       <!-- <form class="cartscale_search_form cc_cartscale_search_form" data-paginator-type="search" action="">
+                            <label for="cartItemSearch" class="control-label cc_cartscale_search_label">{{pageLabelMap 'Search'}}</label>
+                            <div class="input-group cc_input-group" role="search">
+                                <input class="form-control input-sm cc_cartscale_search_input" type="text" placeholder="{{pageLabelMap 'CartInc_Search_Placeholder'}}" value="{{this.cartItems.state.q}}"/>
+                                <span class="input-group-btn">
+                                    <button class="btn btn-default btn-sm cc_cartscale_search_button" type="submit" title="{{pageLabelMap '[Search]'}}">
+                                        <i class="fa fa-search" aria-hidden="true"></i>
+                                    </button>
+                                </span>
+                            </div>
+                        </form>-->
+                        <div class="btn-group dropdown saveCartDropdown">
+                                               <label class="my-cart">My Cart</label>
+                            <button class="saveCart secondary-button cartToList" name="" type="button" data-id="{{sfid}}">
+                                <div class="saveCartLabel">{{pageLabelMap 'WHSL_SaveCart'}}</div>
+                                <img class="pickWish wishlist-icon" src="{!URLFOR($Resource.whsl_Theme, 'images/icons/wishlist.svg')}" data-id="default" width="13" height="16"/>
+                                <img class="pickWish wishlist_icon_white" src="{!URLFOR($Resource.whsl_Theme, 'images/icons/wishlist_white.svg')}" data-id="default" width="13" height="16"/>
+                                <img class="pickWish wishlist_icon_light_green" src="{!URLFOR($Resource.whsl_Theme, 'images/icons/wishlist_light_green.svg')}" data-id="default" width="13" height="16"/>
+                            </button>
+                            <button type="button" class="dropdown-toggle wishlist-toggle dropdown-arrow cartHeaderDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <img src="{!URLFOR($Resource.whsl_Theme, 'images/icons/down-arrow.svg')}" />
+                                <span class="sr-only">{{pageLabelMap 'Wishlist_ToggleDropdown'}}</span>
+                            </button>
+                            <ul class="dropdown-menu wishlist-dropdown" aria-labelledby="dropWish">
+                                <li class="wishlist-header">{{pageLabelMap 'WHSL_Quicklists'}}</li>
+                                    {{#each this}}
+                                        <li class="pickWishList"><a href="javascript:void(0);" class="cartToList" data-id="{{sfid}}">{{{name}}}</a></li>
+                                    {{/each}}
+                                <li role="separator" class="divider"></li>
+                                <li class="createList-header">{{pageLabelMap 'WHSL_CreateNewQuicklists'}}</li>
+                                <li>
+                                    <div class="row center-block">
+                                        <div class="col-xs-12 createList-input">
+                                            <label for="newWishListCart" class="sr-only">{{pageLabelMap 'Wishlist_EnterName'}}</label>
+                                            <input id="newWishListCart" type="text" class="newListName form-control" placeholder="{{pageLabelMap 'MyAccount_Name'}}"/>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <button class="createListCustom-btn pull-right" data-id="-1">{{pageLabelMap 'Action_CreateWishlist'}}</button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-sm-4 col-xs-mob-6 saveCartSection">
+                        <div class="wishFinder cc_wish_finder" data-id="{{this.sfid}}">
+                            <div class="addAlltoList cc_wish_buttons"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-sm-4 col-xs-12">
+                        <div class="dropdown pull-right sortDropdown">
+                            <label for="sortCart" class="sortByLabel">{{pageLabelMap 'WHSL_Product_Sort'}}</label>
+                            <button class="btn btn-default dropdown-toggle" type="button" id="sortCart" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <label id="sortCartLabel"></label>
+                                <img class="sort-arrow pull-right" src="/resource/1626160304000/whsl_Theme/images/icons/down-arrow.svg?orgId=00D1k0000002aRq" />
+                            </button>
+                            <ul class="dropdown-menu sort-options" aria-labelledby="sortCart">
+                                <!--<li><a href="#" id="dateAdded" class="cart_sort_custom cc_cart_sort_item" data-sort="dateAdded">Date Added</a></li>-->
+                                <li><a href="#" id="timeAdded" class="cart_sort_custom cc_cart_sort_item selected" data-sort="timeAdded">{{pageLabelMap 'WHSL_TimeAdded'}}</a></li>
+                                <li><a href="#" id="category" class="cart_sort_custom cc_cart_sort_item" data-sort="category">{{pageLabelMap 'WHSL_Category'}}</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    </div>
+                </div>
+            {{/ifEquals}}
+            <div class="row cc_cartscale_pagination">
+                <div class="col-xs-5">
+                        {{#ifNotEquals this.cartItems.state.q ''}}
+                            <span class="cc_cartscale_pagination_legend">{{pageLabelMap 'CartInc_Search_PaginatorFormat' this.cartItems.state.startItem this.cartItems.state.endItem this.cartItems.state.totalRecords this.cartItems.state.q}}</span>
+                        {{else}}
+                            <span class="cc_cartscale_pagination_legend">{{pageLabelMap 'CartInc_PaginatorFormat' this.cartItems.state.startItem this.cartItems.state.endItem this.cartItems.state.totalRecords}}</span>
+                        {{/ifNotEquals}}
+                    {{#ifNotEquals this.cartItems.state.q ''}}
+                        <button class="btn btn-link btn-sm cartscale_search_reset cc_cartscale_search_reset" data-paginator-type="searchReset" title="{{pageLabelMap 'CartInc_Search_Reset'}}">
+                            {{pageLabelMap 'CartInc_Search_Reset'}}
+                        </button>
+                    {{/ifNotEquals}}
+                </div>
+                <div class="col-xs-7">
+                    {{#ifNotEquals this.cartItems.state.totalPages 1}}
+                    <nav aria-label="{{pageLabelMap 'CartInc_PaginatorLabelghgf'}}" class="cc_cartscale_pagination_nav pull-right">
+                        <ul class="pagination pagination-sm">
+                            {{#if this.cartItems.state.hasPrevious}}
+                            {{#ifNotEquals this.cartItems.state.startPage this.cartItems.state.firstPage}}
+                            <li class="page-item">
+                                <a href="" class="page-link paginatorButton cc_cartscale_page_first" tabindex="-1" data-target="#qtyChangedModal" data-paginator-type="firstPage">{{{pageLabelMap 'CartInc_PaginatorFirst'}}}</a>
+                            </li>
+                            {{/ifNotEquals}}
+                            <li class="page-item">
+                                <a href="" class="page-link paginatorButton cc_cartscale_page_previous" tabindex="-1" data-target="#qtyChangedModal" data-paginator-type="previousPage">{{{pageLabelMap 'CartInc_PaginatorPrevious'}}}</a>
+                            </li>
+                            {{/if}}
+                            {{#for this.cartItems.state.startPage this.cartItems.state.endPage 1}}
+                            {{#ifEquals this ../cartItems.state.currentPage}}
+                            <li class="page-item active cc_cartscale_page_current">
+                                <a href="" id="cartscale-page-edit" class="page-link paginator_edit cc_cartscale_page_edit" data-id="{{safeQuote this}}" contenteditable="true" draggable="false" data-paginator-type="gotoPageEdit">{{safeQuote this}}</a>
+                            </li>
+                            {{else}}
+                            <li class="page-item">
+                                <a href="" class="page-link paginatorButton cc_cartscale_page_goto" data-id="{{safeQuote this}}" data-target="#qtyChangedModal" data-paginator-type="gotoPage">{{safeQuote this}}</a>
+                            </li>
+                            {{/ifEquals}}
+                            {{/for}}
+                            {{#if this.cartItems.state.hasNext}}
+                            <li class="page-item">
+                                <a href="" class="page-link paginatorButton cc_cartscale_page_next" data-target="#qtyChangedModal" data-paginator-type="nextPage">{{{pageLabelMap 'CartInc_PaginatorNext'}}}</a>
+                            </li>
+                            {{#ifNotEquals this.cartItems.state.endPage this.cartItems.state.lastPage}}
+                            <li class="page-item">
+                                <a href="" class="page-link paginatorButton cc_cartscale_page_last" data-target="#qtyChangedModal" data-paginator-type="lastPage">{{{pageLabelMap 'CartInc_PaginatorLast' this.cartItems.state.totalPages}}}</a>
+                            </li>
+                            {{/ifNotEquals}}
+                            {{/if}}
+                        </ul>
+                    </nav>
+                    {{/ifNotEquals}}
+                </div>
+            </div>
+        </div>
+    </script>
+
+
+    <script id="whsl_CartItemDetail-View-Desktop" type="text/template">
+        {{#with this.attributes}}
+        <div class="cart-item">
+            <div class="row cart-item-row" style="border-left: 5px solid {{#if this.product.whslRootCategoryR.whslColorCode}}{{{this.product.whslRootCategoryR.whslColorCode}}}{{else}}grey{{/if}};">
+                <div class="col-lg-6 col-md-5 col-sm-5">
+                    <div class="row prod-desc-section">
+                        <div class="col-md-1 col-sm-1 prod-img">
+                            <div class="cc_cart_product_image">
+                                {{#if product.EProductMediasS.[0]}}
+                                {{productLink product 'cc_product_name_img' image=(displayImage this 'img-responsive center-block img-thumbnail' src=(displayEProductMedia this.product.EProductMediasS.[0]) alt=this.product.sfdcName dataId=this.product.SKU)}}
+                                {{else}}
+                                <img class="img-responsive center-block" src="{!URLFOR($Resource.whsl_Theme, 'images/Product_Thumbnail.svg')}"/>
+                                {{/if}}
+                            </div>
+                        </div>
+                        <div class="col-md-11 col-sm-11">
+                            <div class="row">
+                                <div class="col-lg-9 col-md-12 col-sm-12">
+                                    <p class="item_title cc_item_title prod-name">
+                                        {{#if displayProduct}}
+                                        {{#ifEquals pricingType 'external'}}
+                                        {{#if extName}}
+                                        {{productLink displayProduct 'cc_prod_link' text=(displayProductName 'Aggregate_Display' displayProduct.sfdcName extName)}}
+                                        {{else}}
+                                        {{#if itemLabel}}
+                                        {{productLink displayProduct 'cc_prod_link' text=(displayProductName 'Aggregate_Display' displayProduct.sfdcName itemLabel)}}
+                                        {{else}}
+                                        {{productLink displayProduct 'cc_prod_link' text=(displayProductName 'Aggregate_Display' displayProduct.sfdcName this.product.sfdcName)}}
+                                        {{/if}}
+                                        {{/if}}
+                                        {{else}}
+                                        {{#if itemLabel}}
+                                        {{productLink displayProduct 'cc_prod_link' text=(displayProductName 'Aggregate_Display' displayProduct.sfdcName itemLabel)}}
+                                        {{else}}
+                                        {{productLink displayProduct 'cc_prod_link' text=(displayProductName 'Aggregate_Display' displayProduct.sfdcName this.product.sfdcName)}}
+                                        {{/if}}
+                                        {{/ifEquals}}
+                                        {{else}}
+                                        {{#ifEquals pricingType 'external'}}
+                                        {{#if extName}}
+                                        {{productLink product 'cc_prod_link' text=(displayProductName 'Aggregate_Display' displayProduct.sfdcName extName)}}
+                                        {{else}}
+                                        {{#if itemLabel}}
+                                        {{productLink product 'cc_prod_link' text=(displayProductName 'Aggregate_Display' displayProduct.sfdcName itemLabel)}}
+                                        {{else}}
+                                        {{productLink product 'cc_prod_link' text=(displayProductName 'Aggregate_Display' displayProduct.sfdcName this.product.sfdcName)}}
+                                        {{/if}}
+                                        {{/if}}
+                                        {{else}}
+                                        {{#if itemLabel}}
+                                        {{productLink product 'cc_prod_link' text=(displayProductName 'Aggregate_Display' displayProduct.sfdcName itemLabel)}}
+                                        {{else}}
+                                        {{productLink product 'cc_prod_link' text=(displayProductName 'Aggregate_Display' displayProduct.sfdcName this.product.sfdcName)}}
+                                        {{/if}}
+                                        {{/ifEquals}}
+                                        {{/if}}
+                                    </p>
+                                    <div class="row prod-attr-row">
+                                        {{#if this.product.SKU}}
+                                        <div class="col-lg-6 col-md-6 col-sm-6 prod-attr">
+                                            <label>{{pageLabelMap 'SKU'}}:</label>
+                                            {{{this.product.SKU}}}
+                                        </div>
+                                        {{/if}}
+                                        {{#if this.product.whslUPC}}
+                                        <div class="col-lg-6 col-md-6 col-sm-6 prod-attr">
+                                            <label>{{pageLabelMap 'WHSL_UPC'}}:</label>
+                                            {{{this.product.whslUPC}}}
+                                        </div>
+                                        {{/if}}
+                                        {{#if this.product.unitOfMeasure}}
+                                        <div class="col-lg-6 col-md-6 col-sm-6 prod-attr">
+                                            <label>{{pageLabelMap 'WHSL_UOM'}}:</label>
+                                            {{{this.product.unitOfMeasure}}}
+                                        </div>
+                                        {{/if}}
+                                        {{#if this.product.whslPackSize}}
+                                        <div class="col-lg-6 col-md-6 col-sm-6 prod-attr">
+                                            <label>{{pageLabelMap 'WHSL_PackSize'}}:</label>
+                                            {{{this.product.whslPackSize}}}
+                                        </div>
+                                        {{/if}}
+                                    </div>
+                                </div>
+                                <div class="col-lg-3 col-md-12 col-sm-12">
+                                    {{#if this.product.whslRootCategoryR.sfdcName}}
+                                    <span class="badge badge-pill pills vertical-center category" style="background: {{#if this.product.whslRootCategoryR.whslColorCode}}{{{this.product.whslRootCategoryR.whslColorCode}}}{{else}}grey{{/if}};">
+                                        {{{this.product.whslRootCategoryR.sfdcName}}}
+                                    </span>
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-7 col-sm-7">
+                    <div class="row">
+                        <div class="col-lg-2 col-md-4 col-sm-3">
+                            <div class="price_block cc_price_block prod-price">
+                                {{#if price}}
+                                <p class="price cc_price">
+                                    <span class="cc_value">{{{price price}}}</span>
+                                </p>
+                                {{/if}}
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-3 col-sm-2 uom">{{{this.product.unitOfMeasure}}}</div>
+                        <div class="col-lg-3 col-md-3 col-sm-4">
+                            <p class="price cc_price total-amount">
+                                <span class="cc_value">{{price itemTotal}}</span>
+                            </p>
+                        </div>
+                        <div class="col-lg-2 col-md-2 col-sm-3">
+                            <div class="quantity cc_quantity pull-right" data-id="{{sfid}}">
+                                {{#ifNotEquals cartItemType 'Coupon'}}
+                                <div class="plus_minus cc_plus-minus gp_quantity_block quantity-block" data-id="{{sfid}}">
+                                    {{> cartItemsQty}}
+                                </div>
+                                {{/ifNotEquals}}
+                            </div>
+                        </div>
+                                <div class="col-lg-2 col-md-2 col-sm-3">
+                            <div class="btn-group dropdown">            
+                <button class="secondary-button pickWishCustom" data-id="-1">
+                    <img class="wishlist-icon pickWishCustom" data-id="-1" src="{!URLFOR($Resource.whsl_Theme, 'images/icons/wishlist.svg')}" width="13" height="16"/>
+                    <img class="wishlist_icon_hover pickWishCustom" data-id="-1" src="{!URLFOR($Resource.whsl_Theme, 'images/icons/wishlist_white.svg')}" width="13" height="16"/>
+                </button>
+            <button type="button" class="dropdown-toggle wishlist-toggle dropdown-arrow" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <img src="{!URLFOR($Resource.whsl_Theme, 'images/icons/down-arrow.svg')}" />
+                <span class="sr-only">{{pageLabelMap 'Wishlist_ToggleDropdown'}}</span>
+            </button>
+            <ul class="dropdown-menu wishlist-dropdown" aria-labelledby="dropWish">
+                <li class="wishlist-header">{{pageLabelMap 'WHSL_Quicklists'}}</li>
+                    {{#each this}}
+                        {{log this 'thisTest'}}
+                        <li class="pickWishList"><a href="javascript:void(0);" class="pickWishCustom" data-id="{{this.sfid}}">{{{this.name}}}</a></li>
+                    {{/each}}
+                <li role="separator" class="divider"></li>
+                <li class="createList-header">{{pageLabelMap 'WHSL_CreateNewQuicklists'}}</li>
+                <li>
+                    <div class="row center-block">
+                        <div class="col-xs-12 createList-input">
+                            <label for="newWishList" class="sr-only">{{pageLabelMap 'Wishlist_EnterName'}}</label>
+                            <input id="newWishList" type="text" class="newListName form-control" placeholder="{{pageLabelMap 'MyAccount_Name'}}"/>
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <button class="pickWishCustom createList-btn pull-right" data-id="-1">{{pageLabelMap 'Action_CreateWishlist'}}</button>
+                </li>
+            </ul>
+        </div>
+                        </div>       
+                        <div class="col-lg-1 col-md-12 col-sm-12">
+                            <div class="wishFinder cc_wish_finder" data-sku="{{product.SKU}}">
+                                <div class="row">
+                                    <div class="col-lg-12 col-md-3 col-sm-4 pull-right">
+                                        {{#unless sptMap}}
+                                        <div class="wishButtons cc_wish_buttons">
+                                         </div>
+                                        {{/unless}}
+                                        <img class="deleteItem removeItemButton cc_remove_item_button trash-icon pull-right" src="{!URLFOR($Resource.whsl_Theme, 'images/icons/trash.svg')}" data-id="{{sfid}}"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {{/with}}
+</script>
+    
+    <script id="whsl_CartItemDetail-View-Mobile" type="text/template">
+        {{#with this.attributes}}
+            <div class="cart-item">
+                <div class="cart-item-row-mobile" style="border-left: 3px solid {{#if this.product.whslRootCategoryR.whslColorCode}}{{{this.product.whslRootCategoryR.whslColorCode}}}{{else}}grey{{/if}};">
+                    <div class="row">
+                        <div class="col-xs-2 img-cont">
+                            <div class="cc_cart_product_image">
+                                {{#if product.EProductMediasS.[0]}}
+                                    {{productLink product 'cc_product_name_img' image=(displayImage this 'img-responsive center-block img-thumbnail' src=(displayEProductMedia this.product.EProductMediasS.[0]) alt=this.product.sfdcName dataId=this.product.SKU)}}
+                                {{else}}
+                                    <img class="img-responsive center-block" src="{!URLFOR($Resource.whsl_Theme, 'images/Product_Thumbnail.svg')}"/>
+                                {{/if}}
+                            </div>
+                        </div>
+                        <div class="col-xs-7 data-col">
+                            <div class="row">
+                                <div class="col-xs-12">
+                                    <p class="item_title cc_item_title prod-name">
+                                        {{#if displayProduct}}
+                                            {{#ifEquals pricingType 'external'}}
+                                                {{#if extName}}
+                                                    {{productLink displayProduct 'cc_prod_link' text=(displayProductName 'Aggregate_Display' displayProduct.sfdcName extName)}}
+                                                {{else}}
+                                                    {{#if itemLabel}}
+                                                        {{productLink displayProduct 'cc_prod_link' text=(displayProductName 'Aggregate_Display' displayProduct.sfdcName itemLabel)}}
+                                                    {{else}}
+                                                        {{productLink displayProduct 'cc_prod_link' text=(displayProductName 'Aggregate_Display' displayProduct.sfdcName this.product.sfdcName)}}
+                                                    {{/if}}
+                                                {{/if}}
+                                            {{else}}
+                                                {{#if itemLabel}}
+                                                    {{productLink displayProduct 'cc_prod_link' text=(displayProductName 'Aggregate_Display' displayProduct.sfdcName itemLabel)}}
+                                                {{else}}
+                                                    {{productLink displayProduct 'cc_prod_link' text=(displayProductName 'Aggregate_Display' displayProduct.sfdcName this.product.sfdcName)}}
+                                                {{/if}}
+                                            {{/ifEquals}}
+                                        {{else}}
+                                            {{#ifEquals pricingType 'external'}}
+                                                {{#if extName}}
+                                                    {{productLink product 'cc_prod_link' text=(displayProductName 'Aggregate_Display' displayProduct.sfdcName extName)}}
+                                                {{else}}
+                                                    {{#if itemLabel}}
+                                                        {{productLink product 'cc_prod_link' text=(displayProductName 'Aggregate_Display' displayProduct.sfdcName itemLabel)}}
+                                                    {{else}}
+                                                        {{productLink product 'cc_prod_link' text=(displayProductName 'Aggregate_Display' displayProduct.sfdcName this.product.sfdcName)}}
+                                                    {{/if}}
+                                                {{/if}}
+                                            {{else}}
+                                                {{#if itemLabel}}
+                                                    {{productLink product 'cc_prod_link' text=(displayProductName 'Aggregate_Display' displayProduct.sfdcName itemLabel)}}
+                                                {{else}}
+                                                    {{productLink product 'cc_prod_link' text=(displayProductName 'Aggregate_Display' displayProduct.sfdcName this.product.sfdcName)}}
+                                                {{/if}}
+                                            {{/ifEquals}}
+                                        {{/if}}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="row mobile-prod-attr-row col-xs-12">
+                                <div class = "row row-margin">
+                                    {{#if this.product.SKU}}
+                                    <div class="col-xs-6 prod-attr">
+                                        <label>{{pageLabelMap 'SKU'}}:</label>
+                                        {{{this.product.SKU}}}
+                                    </div>
+                                    {{/if}}
+                                    {{#if this.product.whslUPC}}
+                                    <div class="col-xs-6 prod-attr">
+                                        <label>{{pageLabelMap 'WHSL_UPC'}}:</label>
+                                        {{{this.product.whslUPC}}}
+                                    </div>
+                                    {{/if}}
+                                </div>
+                                <div class = "row row-margin">
+                                    {{#if this.product.unitOfMeasure}}
+                                    <div class="col-xs-6 prod-attr">
+                                        <label>{{pageLabelMap 'WHSL_UOM'}}:</label>
+                                        {{{this.product.unitOfMeasure}}}
+                                    </div>
+                                    {{/if}}
+                                    {{#if this.product.whslPackSize}}
+                                    <div class="col-xs-6 prod-attr">
+                                        <label>{{pageLabelMap 'WHSL_PackSize'}}:</label>
+                                        {{{this.product.whslPackSize}}}
+                                    </div>
+                                    {{/if}}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xs-3 wishlistMobile">
+                            <div class="wishFinder cc_wish_finder" data-sku="{{product.SKU}}">
+                                <div class="wishButtons cc_wish_buttons"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-offset-2 col-xs-2 attr-label data-col">
+                            {{pageLabelMap 'PriceList_Price'}}
+                        </div>
+                        <div class="col-xs-2 attr-label">
+                            {{pageLabelMap 'WHSL_UOM'}}
+                        </div>
+                        <div class="col-xs-3 attr-label">
+                            {{pageLabelMap 'whsl_Amount'}}
+                        </div>
+                        <div class="col-xs-3 attr-label">
+                            {{pageLabelMap 'CartInc_AttributeQuantity'}}
+                        </div>
+                        
+                        <div class="col-xs-2 del-icon">
+                            <img class="deleteItem removeItemButton cc_remove_item_button trash-icon" src="{!URLFOR($Resource.whsl_Theme, 'images/icons/trash.svg')}" data-id="{{sfid}}"/>
+                        </div>
+                        <div class="col-xs-2 data-col">
+                            <div class="price_block cc_price_block prod-price">
+                                {{#if price}}
+                                    <p class="price cc_price">
+                                        <span class="cc_value">{{{price price}}}</span>
+                                    </p>
+                                {{/if}}
+                            </div>
+                        </div>
+                        <div class="col-xs-2 uom data-col">
+                            {{{this.product.unitOfMeasure}}}
+                        </div>
+                        <div class="col-xs-3 data-col">
+                            <p class="price cc_price total-amount">
+                                <span class="cc_value">{{price itemTotal}}</span>
+                            </p>
+                        </div>
+                        <div class="col-xs-3 data-col">
+                            <div class="plus_minus cc_plus-minus gp_quantity_block quantity-block" data-id="{{sfid}}">
+                                {{> cartItemsQty}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {{/with}}
+    </script>
+    
+    <script id="whsl_CartItemDetail-Qty-View" type="text/template">
+        {{#ifEquals qtyIncrement 1}}
+            <div class="cc_qty_control_row">
+                <span class="minus cc_minus minus-qty">
+                    <img src="{!URLFOR($Resource.whsl_Theme, 'images/icons/minus.svg')}" />
+                </span>
+                <input id="entry_{{sfid}}" min="1" type="number" name="qty" value="{{quantity}}" 
+                 class="{{productR.SKU}}_qty input-text qty entry plus_minus cc_entry restrictQuantity" maxlength="7" onpaste="return false;" autocomplete="off"/>
+                <span class="plus cc_plus plus-qty" id="add_{{sfid}}">
+                    <img src="{!URLFOR($Resource.whsl_Theme, 'images/icons/plus.svg')}"/>
+                </span>
+            </div>
+        {{/ifEquals}}
+        <input type="hidden" name="qtyIncrement" value="{{qtyIncrement}}" class="item_qtyIncrement" />
+        <input type="hidden" name="qtySkipIncrement" value="{{qtySkipIncrement}}" class="item_qtySkipIncrement" />
+    </script>
+    
+    <script id="WHSL-AddtoWishlist-Desktop-cart" type="text/template">   <!-- OOTB code for add to wishlist button, added classes for custom styling-->
+        <div class="btn-group dropdown">
+            {{#if this}}
+                {{#each this}}
+                {{#if isActive}}
+                <button class="secondary-button pickWishCustom" data-id="{{sfid}}">
+                    <img class="wishlist-icon pickWishCustom" data-id="{{sfid}}" src="{!URLFOR($Resource.whsl_Theme, 'images/icons/wishlist.svg')}" width="13" height="16"/>
+                    <img class="wishlist_icon_hover pickWishCustom" data-id="{{sfid}}" src="{!URLFOR($Resource.whsl_Theme, 'images/icons/wishlist_white.svg')}" width="13" height="16"/>
+                </button>
+                {{/if}}
+                {{#if noActive}}
+                <button class="secondary-button pickWishCustom" data-id="-1">
+                    <img class="wishlist-icon pickWishCustom" data-id="-1" src="{!URLFOR($Resource.whsl_Theme, 'images/icons/wishlist.svg')}" width="13" height="16"/>
+                    <img class="wishlist_icon_hover pickWishCustom" data-id="-1" src="{!URLFOR($Resource.whsl_Theme, 'images/icons/wishlist_white.svg')}" width="13" height="16"/>
+                </button>
+                {{/if}}
+                {{/each}}
+                {{else}}
+                <button class="secondary-button pickWishCustom" data-id="-1">
+                    <img class="wishlist-icon pickWishCustom" data-id="-1" src="{!URLFOR($Resource.whsl_Theme, 'images/icons/wishlist.svg')}" width="13" height="16"/>
+                    <img class="wishlist_icon_hover pickWishCustom" data-id="-1" src="{!URLFOR($Resource.whsl_Theme, 'images/icons/wishlist_white.svg')}" width="13" height="16"/>
+                </button>
+            {{/if}}
+            <button type="button" class="dropdown-toggle wishlist-toggle dropdown-arrow" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <img src="{!URLFOR($Resource.whsl_Theme, 'images/icons/down-arrow.svg')}" />
+                <span class="sr-only">{{pageLabelMap 'Wishlist_ToggleDropdown'}}</span>
+            </button>
+            <ul class="dropdown-menu wishlist-dropdown" aria-labelledby="dropWish">
+                <li class="wishlist-header">{{pageLabelMap 'WHSL_Quicklists'}}</li>
+                    {{#each this}}
+                        {{log this 'thisTest'}}
+                        <li class="pickWishList"><a href="javascript:void(0);" class="pickWishCustom" data-id="{{this.sfid}}">{{{this.name}}}</a></li>
+                    {{/each}}
+                <li role="separator" class="divider"></li>
+                <li class="createList-header">{{pageLabelMap 'WHSL_CreateNewQuicklists'}}</li>
+                <li>
+                    <div class="row center-block">
+                        <div class="col-xs-12 createList-input">
+                            <label for="newWishList" class="sr-only">{{pageLabelMap 'Wishlist_EnterName'}}</label>
+                            <input id="newWishList" type="text" class="newListName form-control" placeholder="{{pageLabelMap 'MyAccount_Name'}}"/>
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <button class="pickWishCustom createList-btn pull-right" data-id="-1">{{pageLabelMap 'Action_CreateWishlist'}}</button>
+                </li>
+            </ul>
+        </div>
+    </script>
+    <script>
+        jQuery(function() {
+            CCRZ.uiProperties.CartDetailView.partials.cartItemsDesktop = "#whsl_CartItemDetail-View-Desktop";
+            CCRZ.uiProperties.CartDetailView.partials.cartItemsMobile = "#whsl_CartItemDetail-View-Mobile";
+            CCRZ.uiProperties.CartDetailView.partials.cartItemsQty = "#whsl_CartItemDetail-Qty-View";
+            CCRZ.uiProperties.CartItemsView.tmpl = "whsl_KartItemsView";
+            CCRZ.uiProperties.CartItemsView.partials.cartItemsPagination = "#KartItemsPaginationView";
+            CCRZ.uiProperties.CartDetailView.partials.headerSection = "#KartItemsPaginationView";
+            
+            Handlebars.registerPartial("cartItemsMobile", $(CCRZ.uiProperties.CartDetailView.partials.cartItemsMobile).html());
+            
+            var isCartDetailsNotRefreshed = true;
+			var category = CCRZ.processPageLabelMap('WHSL_ProductCategory').string;
+            var timeAdded = CCRZ.processPageLabelMap('WHSL_TimeAdded').string;
+            
+            CCRZ.pubSub.on("view:CartItemsView:refresh", function (viewInstance) {
+                CCRZ.pubSub.trigger("view:ActiveTab:refresh", this);
+                $("#sortCartLabel").html(timeAdded);
+            });
+            
+            CCRZ.pubSub.on("view:CartDetailView:refresh", function (viewInstance) {
+                CCRZ.pubSub.trigger("view:ActiveTab:refresh", this);
+                if (isCartDetailsNotRefreshed) {
+                    isCartDetailsNotRefreshed = false;
+                    addAllToWishListView = new CCRZ.views.addAllToWishListFromCart();
+                    setCartDetailsData(viewInstance.model.attributes.ECartItemsS, CCRZ.views.CartDetailView.prototype, viewInstance);
+                    viewInstance.setElement(viewInstance.$el);
+                    console.log('viewInstance:->');
+                    console.log(viewInstance); 
+                }
+            });
+            
+            var setCartDetailsData = function (cartItemModel, cartItemView, CartItemInst) {
+                debugger;
+                var events = cartItemView.events;
+                events["click .cart_sort_custom"] = "performSortCustom";
+                events["click .goBack"] = "goBack";
+                events["click .deleteItem"] = "customDelete";
+                events["click .cc_update_cart_button"] = "customUpdate";
+                events["click .createListCustom-btn"] = "createWishlist";
+                events["click .pickWishCustom"] = "addItemCustom";
+                cartItemsToQuickList = cartItemModel;
+                cartItemView.performSortCustom = function (event) {
+                    var objLink = $(event.currentTarget);
+                    var sortField = objLink.data("sort");
+                    var items = this.model.get('ECartItemsS');
+                    filter = sortField;
+                    if (sortField !== this.params.sortBy) {
+                        latestSorted = true;
+                        if (sortField === 'category') {
+                            items.models.sort(function (item1, item2) {
+                                // Product with no categories are at the end
+                                if (!item2.attributes.product.whslRootCategoryR) {
+                                    return -1;
+                                } else if (!item1.attributes.product.whslRootCategoryR) {
+                                    return 0;
+                                } else {
+                                    // when category name is similar, compare product name
+                                    if (item1.attributes.product.whslRootCategoryR.sfdcName === item2.attributes.product.whslRootCategoryR.sfdcName) {
+                                        return item1.attributes.product.sfdcName > item2.attributes.product.sfdcName ? 1 : -1;
+                                    }
+                                    return item1.attributes.product.whslRootCategoryR.sfdcName > item2.attributes.product.whslRootCategoryR.sfdcName ? 1 : -1;
+                                }
+                            });
+                        } else if (sortField === 'timeAdded') {
+                            items.models.sort(function (item1, item2) {
+                                return item1.attributes.sfid < item2.attributes.sfid ? 1 : -1;
+                            });
+                        }
+                        this.model.set('ECartItemsS', items);
+                        this.params.sortBy = sortField;
+                    }
+                    this.render();
+                    $("#sortCartLabel").html(objLink.html());
+                    $('.selected').removeClass('selected');
+                    if (sortField == "timeAdded") {
+                        $("#timeAdded").addClass('selected');
+                    } else {
+                        $("#category").addClass('selected');
+                    }
+                    addAllToWishListView.refresh();
+                };
+                cartItemView.goBack = function () {
+                    window.history.back();
+                };
+                cartItemView.customDelete = function () {
+                    CartItemInst.params.deletedItem = true;
+                };
+                cartItemView.customUpdate = function () {
+                    CartItemInst.params.updatedItem = true;
+                };
+                cartItemView.createWishlist = function (event) {
+                    var view = this;
+                    var messages = view.model.unset('messages');
+                    var cartjson = JSON.stringify(view.model.toJSON());
+                    var name = $("#newWishListCart").val();
+                    var wishlistId = -1;
+                    if (name == "") {
+                        name = view.model.get("name");
+                    }
+                    var skusQuantityMap = {};
+                    cartItemsToQuickList.models.map(validItem => {
+                        if (skusQuantityMap[validItem.attributes.product.SKU] === undefined) {
+                            if (validItem.changed.quantity) {
+                                skusQuantityMap[validItem.attributes.product.SKU] = parseInt(validItem.changed.quantity) > 999 ? 999 : validItem.changed.quantity;
+                            } else {
+                                skusQuantityMap[validItem.attributes.product.SKU] = parseInt(validItem.attributes.quantity) > 999 ? 999 : validItem.attributes.quantity;
+                            }
+                        }
+                    });
+                    var v = this;
+                    v.className = 'WHSL_CartController';
+
+                    this.invokeContainerLoadingCtx($('.deskLayout'), 'bulkAddToWishList', wishlistId, skusQuantityMap, name, function (response) {
+                        view.model.set('messages', (response && response.messages) ? response.messages : []);
+                        response.clearInclSectionsOnly = true;
+                        CCRZ.pubSub.trigger("pageMessage", response);
+                        if (view.pickerView) {
+                            view.pickerView.refresh();
+                        }
+                        addAllToWishListView.refresh();
+                    }, { buffer: false, escape: false, nmsp: false });
+                    $("#newWishListCart").val('');
+                };
+                cartItemView.addItemCustom = function (event) {
+                    var objLink = $(event.target);
+                    var id = objLink.data("id");
+                    this.processAddItemCustom(objLink, id);
+                },
+                    cartItemView.processAddItemCustom = function (obj, id) {
+                        var parentObj = obj.closest('.wishFinder');
+                        var sku = parentObj.data("sku");
+                        var val = $(`.${sku}_qty`).val();
+                        if (parseInt(val) > 999) {
+                            val = 999;
+                        }
+                        var createName = "";
+                        if (id == -1) {
+                            createName = obj.closest(CCRZ.uiProperties.wishlistPickerModal.nameSelector).find('.newListName').val();
+                        }
+                        var v = this;
+                        v.className = 'WHSL_CartController';
+                        this.invokeContainerLoadingCtx($('.deskLayout'), 'addProductToWishList', sku, val, createName, id, function (response) {
+                            CCRZ.pubSub.trigger('refreshWishlists', id);
+                            if (id == '-1') {
+                                v.pickerView.refresh();
+                            }
+                            addAllToWishListView.init();
+                        }, { buffer: false, escape: false, nmsp: false });
+                    }
+            };
+    
+    CCRZ.uiProperties.addAllToWishListFromCart = {
+                "tmpl": "addAlltoList",
+                "selector": ".addAlltoList"
+            }
+
+            CCRZ.views.addAllToWishListFromCart = CCRZ.CloudCrazeView.extend({
+                templateBoth: CCRZ.util.template(CCRZ.uiProperties.addAllToWishListFromCart.tmpl),
+                className: 'WHSL_CartController',
+                viewName: "addAllToWishListFromCart",
+                events: {
+                    "click .cartToList": "addItemAll",
+                    "click .newListName": "focusInput"
+                },
+                init: function () {
+                    this.setElement($(CCRZ.uiProperties.addAllToWishListFromCart.selector));
+                    var coll = this;
+                    this.className = 'cc_ctrl_WishlistPicker';
+
+                    this.invokeContainerLoadingCtx($('.deskLayout'), 'fetchLightWishlists', function (response, event) {
+                        if (response && response.data) {
+                            coll.models = response.data;
+                            coll.className = "WHSL_CartController";
+                            hasWishListBeenRendered = true;
+                            coll.render();
+                        }
+                    });
+
+                },
+                refresh: function () {
+                    var coll = this;
+                    this.className = 'cc_ctrl_WishlistPicker';
+                    this.invokeContainerLoadingCtx($('.deskLayout'), 'fetchLightWishlists', function (response, event) {
+                        if (response && response.data && !(response.data.indexOf(undefined) > -1)) {
+                            coll.models = response.data;
+                            coll.className = "WHSL_CartController";
+                            coll.render();
+                        }
+                    });
+                },
+                render: function () {
+                    this.setElement($(CCRZ.uiProperties.addAllToWishListFromCart.selector));
+                    var v = this;
+                    //CCRZ.cartDetailView.pickerView.refresh();
+                    /*if (v.models.length > CCRZ.cartDetailView.pickerView.coll.models.length) {
+                        v.$el.html(v.templateBoth(v.models));
+                    } else {
+                        v.$el.html(v.templateBoth(CCRZ.cartDetailView.pickerView.coll.toJSON()));
+                    }*/
+                },
+                focusInput: function (event) {
+                    event.stopPropagation();
+                },
+                addItemAll: function (event) {
+                    var objLink = $(event.target);
+                    var wishlistId = objLink.data("id");
+                    this.processAddItemAll(objLink, wishlistId);
+                },
+                processAddItemAll: function (obj, wishlistId) {
+                    var parentObj = obj.closest('.wishFinder');
+                    var cartId = parentObj.data("id");
+                    var remoteActionCartTolist = _.extend(CCRZ.RemoteInvocation, {
+                        className: 'WHSL_CartController'
+                    });
+                    var view = this;
+                    var skusQuantityMap = {};
+                    cartItemsToQuickList.models.map(validItem => {
+                        if (skusQuantityMap[validItem.attributes.product.SKU] === undefined) {
+                            if (validItem.changed.quantity) {
+                                skusQuantityMap[validItem.attributes.product.SKU] = parseInt(validItem.changed.quantity) > 999 ? 999 : validItem.changed.quantity;
+                            } else {
+                                skusQuantityMap[validItem.attributes.product.SKU] = parseInt(validItem.attributes.quantity) > 999 ? 999 : validItem.attributes.quantity;
+                            }
+                        }
+                    });
+                    remoteActionCartTolist.invokeCtx('bulkAddToWishList', wishlistId, skusQuantityMap, '', function (response) {
+                        OOTBWishlistView.refresh();
+                        addAllToWishListView.refresh();
+                    }, { buffer: false, escape: false, nmsp: false });
+                }
+            });
+
+            CCRZ.uiProperties.InvalidItemsInCartModel = {
+            "tmpl": "NotifyInvalidItemsInCartDialog",
+            "selector": "#CartInvalidItemsNotification"
+        }
+            
+     CCRZ.views.navigatePaginationView = CCRZ.CloudCrazeView.extend({
+      templateDesktop: CCRZ.util.template(CCRZ.uiProperties.navigatePaginationView.desktop.tmpl),
+      templatePhone: CCRZ.util.template(CCRZ.uiProperties.navigatePaginationView.phone.tmpl),
+      phoneEl : CCRZ.uiProperties.navigatePaginationView.phone.selector,
+      desktopEl : CCRZ.uiProperties.navigatePaginationView.desktop.selector,
+      viewName : "navigatePaginationView",
+      events: {
+       "click .firstAction" : "firstPage",
+       "click .lastAction" : "lastPage",
+       "click .previousAction" : "previousPage",
+       "click .nextAction" : "nextPage",
+       "click .gotoPage" : "gotoPage",
+       "change .sizeAction" : "changePageSize",
+       "click .resortAction" : "resort"
+      },
+      init: function() {
+       this.listenTo(this.model, "reset", this.render);
+      },
+      hostRendered : function(context, options) {
+       if(options) {
+        this.hostView = options.hostView;
+       }
+       this.render();
+      },
+      withinViewChange : false,
+      managedSubView : true,
+      preViewChanged : function(){
+       this.withinViewChanged = true;
+      },
+      preRender : function() {
+       this.$el.html(''); 
+       v = this; 
+       v.model.state.slidingWindowSize = parseInt(CCRZ.getPageConfig('pgbl.WndSz', '3')); 
+       v.model.state.currentSlidingWindow = Math.floor((v.model.state.currentPage-1) / v.model.state.slidingWindowSize) + 1;
+       v.model.state.startPage = (v.model.state.currentSlidingWindow-1) * v.model.state.slidingWindowSize + 1;
+       if((v.model.state.currentSlidingWindow * v.model.state.slidingWindowSize) <= v.model.state.totalPages) {
+        v.model.state.endPage = (v.model.state.currentSlidingWindow)*v.model.state.slidingWindowSize;
+       } else {
+        v.model.state.endPage = v.model.state.totalPages;
+       }
+       v.model.state.hasPrevious = v.model.hasPreviousPage();
+       v.model.state.hasNext = v.model.hasNextPage();
+       v.model.state.startItem = (v.model.state.currentPage-1)*v.model.state.pageSize+1;
+       if((v.model.state.currentPage * v.model.state.pageSize) <= v.model.state.totalRecords) {
+        v.model.state.endItem = (v.model.state.currentPage)*v.model.state.pageSize;
+       } else {
+        v.model.state.endItem = v.model.state.totalRecords;
+       }
+       
+       var itemsPerPage = CCRZ.getPageConfig('pgbl.itmPerP', '10,25,50,75'); 
+       v.model.state.itemsPerPagePLValues = itemsPerPage.split(",");
+       for(var i=0; i < v.model.state.itemsPerPagePLValues.length; i++) { v.model.state.itemsPerPagePLValues[i] = parseInt(v.model.state.itemsPerPagePLValues[i], 10); }
+      },
+      renderDesktop : function() {
+       v.setElement($(this.desktopEl));
+       v.$el.html(v.templateDesktop(v.model.state));
+      },
+      renderPhone : function() {
+       v.setElement($(this.phoneEl));
+       v.$el.html(v.templatePhone(v.model.state));
+      },
+      postRender : function() {
+       if(!this.withinViewChanged && this.hostView) {
+        var eventName = "pagination:"+this.hostView+":rendered";
+        CCRZ.pubSub.trigger(eventName, this);
+        CCRZ.console.log('trigger='+ eventName + ' context=' + this);
+       }
+       this.withinViewChanged = false;
+      },
+      firstPage: function(event) {
+       if (event) event.preventDefault();
+       this.model.getFirstPage();
+      },
+      previousPage: function(event) {
+       if (event) event.preventDefault();
+       this.model.getPreviousPage();
+      },
+      nextPage: function(event) {
+       if (event) event.preventDefault();
+       this.model.getNextPage();
+      },
+      lastPage: function(event) {
+       if (event) event.preventDefault();
+       this.model.getLastPage();
+      },
+      setSorting: function(sortKey, asc) {
+       this.model.setSorting(sortKey, asc);
+       this.model.fullCollection.sort();
+      
+      },
+      gotoPage: function(event) {
+       if (event) event.preventDefault();
+       var pageNum = $(event.target).data("id");
+       this.model.getPage(pageNum);
+      },
+      changePageSize: function(event) {
+       v = this;
+       var pSize = parseInt($(event.currentTarget).val());
+       v.model.setPageSize(pSize, {
+        first : true
+       });
+      },
+      resort: function(event) {
+      }
+     });
+
+            CCRZ.views.CartItemsView = CCRZ.views.navigatePaginationView.extend({
+                viewName: "CartItemsView",
+                desktopEl: CCRZ.uiProperties.CartItemsView.tmpl,
+                phoneEl: CCRZ.uiProperties.CartItemsView.tmpl,
+                templateDesktop: CCRZ.util.template(CCRZ.uiProperties.CartItemsView.tmpl),
+                templatePhone: CCRZ.util.template(CCRZ.uiProperties.CartItemsView.tmpl),
+                templateBoth: CCRZ.util.template(CCRZ.uiProperties.CartItemsView.tmpl),
+                initialize: function(options) {
+                    var v = this;
+                    if (options) {
+                        v.parent = options.parent;
+                        v.model = options.model;
+                    }
+                    Handlebars.registerPartial("cartItemsPagination", $(CCRZ.uiProperties.CartItemsView.partials.cartItemsPagination).html());
+                    Handlebars.registerPartial("cartItemsDesktop", $(CCRZ.uiProperties.CartDetailView.partials.cartItemsDesktop).html());
+                    Handlebars.registerPartial("cartItemAdditional", $(CCRZ.uiProperties.CartDetailView.partials.cartItemAdditional).html());
+                    Handlebars.registerPartial("attributesDisplay", $(CCRZ.uiProperties.CartDetailView.partials.attributesDisplay).html());
+                    Handlebars.registerPartial("cartItemComment", $(CCRZ.uiProperties.CartDetailView.partials.cartItemComment).html());
+                    Handlebars.registerPartial("cartItemsQty", $(CCRZ.uiProperties.CartDetailView.partials.cartItemsQty).html());
+                  
+                    v.listenTo(v.model, "reset", v.render);
+                    CCRZ.pubSub.on("action:CartDetailView:cartHeaderRefreshed", function(o) {
+                        if(undefined !== v.parent.model.get('cartItemsTotal')){
+                            v.model.state.totalRecords = parseInt(v.parent.model.get('cartItemsTotal'));
+                        }
+                        v.model.fetch();
+                    })
+                },
+                events: {
+                    "click .prodLink" : "gotoProductDetail",
+                    "click .closeModal": "closeRemoveModal",
+                    "click .revertCloseModal": "closeRevertRemoveModal",
+                    "click .removeInvalidBtn": "removeInvalidItems",
+                    "click .removeItemButton": "removeItem",
+                    "click .removeAttributeItemButton": "removeAttributeItem",
+                    "click .plus" : "addSingleQty",
+                    "click .minus" : "removeSingleQty",
+                    "click .plusFF" : "addSkipQty",
+                    "click .minusFF" : "removeSkipQty",
+                    "click .saveComment" : "saveItemComment",
+                    "click .saveChangesButton" : "saveCartChanges",
+                    "click .cc_prt_cart_button" : "fetchPricingTiers",
+                    "keypress .input-text.entry" : "qtyKeyPress",
+                    "change .input-text.entry" : "changeQuantity",
+                    "click .gp_attribute_items_link": "saveOriginalQuantity",
+                    "click .paginatorButton" : "clickedPaginator",
+                    "keypress .paginator_edit" : "gotoPageEdit",
+                    "change .cartscale_sort" : "resort",
+                    "submit .cartscale_search_form" : "clickedPaginator",
+                    "click .cartscale_search_reset" : "clickedPaginator",
+                    "click .changeModalBtn" : "processChange",
+                    "hidden.bs.modal .item_comment_modal" : "updateItemComment"
+                },
+                clickedPaginator: function(event) {
+                    //one of the pagination actions was clicked or submitted, so we need to forward some -data attributes, and pop the modal if there are changes pending
+                    var v = this;
+                    event.preventDefault();
+
+
+                    var theTarget = $(event.currentTarget);
+                    var pagType = theTarget.data('paginator-type');
+                    //when a paginator is clicked, we need to forward the data type through to the modal buttons for click handling (so we know which pagination action to peform)
+                    $('.changeModalBtn').data("paginator-type", pagType);
+
+                    //this is a special case.  If we have a gotopage pagination action, then we also need to forward through the related target id
+                    if (pagType && pagType === 'gotoPage') {
+                        $('.changeModalBtn').data("id", theTarget.data("id"));
+                    }
+
+                    //if there is a change, pop the modal
+                    if(v.parent.params.hasChanged){
+                        $('.cc_cart_qty_changed_modal').modal("show");
+                    }else{
+                        //else just go ahead and paginate
+                        v.processChange(event);
+                    }
+                },
+                processChange: function(event){
+                    //one of the modal action buttons was clicked, if it was save, then save the changes, and then peform pagination.  else just perform pagination
+                    var v = this;
+                    var isSave = $(event.currentTarget).data("is-save");
+
+                    if(isSave){
+                        //first save the changes
+                        v.parent.model.saveChanges(v, function(response){
+                            if (response.success) {
+                                v.parent.params.hasChanged = false;
+                                CCRZ.pubSub.trigger('cartChange', CCRZ.pagevars.currentCartID);
+                            }
+                            //now that the save was successful perform the correct pagination action
+                            v.paginationAction(event);
+                        });
+                    }{
+                        //if we are not saving, then throw away the changes by just directly performing the pagination action, also mark hasChanged false as the changes are discarded
+                        v.parent.params.hasChanged = false;
+                        v.paginationAction(event);
+                    }
+
+
+                },
+                paginationAction: function(event) {
+                    var paginatorType = $(event.currentTarget).data("paginator-type");
+
+                    if(paginatorType){
+                        if(paginatorType === "firstPage") {
+                            v.firstPage(event);
+                        }
+                        else if(paginatorType === "previousPage"){
+                            v.previousPage(event);
+                        }
+                        else if(paginatorType === "nextPage"){
+                            v.nextPage(event);
+                        }
+                        else if(paginatorType === "lastPage"){
+                            v.lastPage(event);
+                        }
+                        else if(paginatorType === "gotoPage"){
+                            v.gotoPage(event);
+                        }else if(paginatorType === "gotoPageEdit"){
+                            v.gotoEditedPage(event);
+                        }else if(paginatorType === "search") {
+                            v.search(event);
+                        }else if(paginatorType === "searchReset") {
+                            v.searchReset(event);
+                        }
+                        //close the modal out
+                        $('#qtyChangedModal').modal("hide");
+                    }
+                },
+
+                gotoPageEdit: function(event) {
+                    var v = this;
+                    if (isNaN(String.fromCharCode(event.which))) {
+                        event.preventDefault();
+                    }
+                    if (13 == event.which) {
+                        event.preventDefault();
+                        //if we have a qty change, pop the modal
+                        if(v.parent.params.hasChanged) {
+                            //pop up the modal for qty confirmation
+                            $('#qtyChangedModal').modal("show");
+                            //tell the modal that this is a gotoPageEdit data type
+                            $('.changeModalBtn').data("paginator-type", 'gotoPageEdit');
+                        }else{
+                            //no quantity change, so just go to the page
+                            v.gotoEditedPage(event);
+                        }
+                    }
+                },
+                gotoEditedPage: function(event) {
+                    event.preventDefault();
+                    var v = this,
+                        //use jquery to grab the page entered
+                        page = parseInt($('#cartscale-page-edit').text());
+                    //if the page entered is invalid, then default to the last page
+                    if (isNaN(page) || page < 1  || page > v.model.state.totalPages)  {
+                        page = v.model.state.totalPages;
+                    }
+                    //go to the valid page
+                    this.model.getPage(page);
+                },
+                resort: function(event) {
+                    if (event) event.preventDefault();
+                    var v = this,
+                        sel = $('.cc_cartscale_page_sort').find(':selected'),
+                        sortKey = sel.data('sort') || v.model.state.sortKey,
+                        direction = sel.data('direction') || v.model.state.order;
+                    v.model.setSorting(sortKey, direction, {side:'server', full:'true'});
+                    //Because sort always discards the qty changes pending, we need to mark that it no longer has changes
+                    v.parent.params.hasChanged = false;
+                    v.model.state.currentPage = 1; // force page 1 on resort
+                    v.model.fetch();
+                },
+                search: function(event) {
+                    if (event) event.preventDefault();
+                    var v = this,
+                        search = $('.cc_cartscale_search_input').val();
+                    v.model.state.q = search.trim();
+                    v.parent.model.searchFormData.q = search.trim();
+                    v.model.state.currentPage = 1; // force page 1 on search
+                    v.parent.model.fetch(v.parent.params.skipAutoCalc, JSON.stringify(v.parent.model.searchFormData), function(resposne) {
+                        CCRZ.pubSub.trigger('action:CartDetailView:cartHeaderRefreshed');
+                    });
+                },
+                searchReset: function(event) {
+                    var v = this;
+                    $('.cc_cartscale_search_input').val('');
+                    v.search();
+                },
+                render: function() {
+                    var v = this;
+                    v.preRender();
+                    v.setElement($(CCRZ.uiProperties.CartItemsView.selector));
+                    var allData = {'cartDetail': v.parent.model.attributes, 'cartItems': v.model};
+                    v.$el.html(v.templateBoth(allData));
+                    CCRZ.pubSub.trigger("view:"+v.viewName+":refresh", v);
+                    CCRZ.pubSub.trigger("pagination:"+v.viewName+":rendered", v);
+                    v.postRender();
+                },
+                preRender: function() {
+                    this.$el.html('');
+                    v = this;
+                    v.model.state.hasPrevious = v.model.hasPreviousPage();
+                    v.model.state.hasNext = v.model.hasNextPage();
+                    v.model.state.windowBuffer = Math.floor(v.model.state.slidingWindowSize/2);
+                    v.model.state.startPage = Math.max(1, // can't be < 1
+                        Math.min((v.model.state.totalPages - v.model.state.slidingWindowSize + 1), // near the end
+                            (v.model.state.currentPage - v.model.state.windowBuffer)));
+                    v.model.state.endPage = Math.min(v.model.state.totalPages, // can't exceed max pages
+                        Math.max(v.model.state.slidingWindowSize, // don't need to slide yet
+                            (v.model.state.currentPage + v.model.state.windowBuffer)));
+                    v.model.state.startItem = ((v.model.state.currentPage-1) * v.model.state.pageSize) + 1;
+                    if ((v.model.state.currentPage * v.model.state.pageSize) <= v.model.state.totalRecords) {
+                        v.model.state.endItem = (v.model.state.currentPage * v.model.state.pageSize);
+                    } else {
+                        v.model.state.endItem = v.model.state.totalRecords;
+                    }
+                },
+                gotoProductDetail: function(event) {
+                    var objLink = $(event.currentTarget);
+                    var id = objLink.data("id");
+                    productDetails(id);
+                    return false;
+                },
+                updateItemComment: function(event) {
+                    //NOTE we are ALWAYS throwing away the new form value when the close evet fires.  If SAVE was clicked, the form value was already saved to the model
+                    var objLink = $(event.currentTarget);
+                    var id = objLink.data("id");
+                    var items = this.parent.model.get('ECartItemsS');
+                    var matchingLines = items.where({'sfid': id });
+
+                    if (matchingLines && matchingLines.length > 0) {
+                        //revert the comment back to the model value
+                        $('#commentField'+id).val( matchingLines[0].get('comments') );
+                    }
+
+                },
+                saveItemComment: function(event) {
+                    var v = this;
+                    var objLink = $(event.currentTarget);
+                    var id = objLink.data("id");
+                    var items = this.parent.model.get('ECartItemsS');
+                    var formData = form2js('commentsForm' + id, '.', false, function(node) {}, false, true);
+                    var matchingLines = items.where({'sfid': id });
+
+                    //call RA to save ONLY the comment
+                    v.parent.invokeContainerLoadingCtx($('.deskLayout'), 'updateComment', id, formData.note, function(response, event) {
+                        //update the value in the model only.  (NOTE this is not a refresh in the sense that we do not refetch any data)
+                        //if a subsequent qty save happens, it will basically update the comment to the same value that was already saved
+                        matchingLines[0].set('comments', formData.note);
+                        //dismiss the modal
+                        $("#comments_" + id).modal("hide");
+                    });
+                },
+                saveCartChanges: function(event) {
+                    var v = this;
+                    v.parent.partialRefresh(true, function(response){
+                        CCRZ.pubSub.trigger('cartChange', CCRZ.pagevars.currentCartID);
+                    });
+                },
+                saveCart : function(event){
+                    if($('.gp_cart_attribute_items_modal').hasClass('in')) {
+                        $('.gp_cart_attribute_items_modal').modal('hide');
+                    }
+
+                    var view = this;
+                    if(CCRZ.pagevars.pageConfig.isTrue('c.noqty') && CCRZ.pagevars.pageConfig.isTrue('c.vernoqty')){
+                        //find any items in the model with quantity 0
+                        var items = this.model.get('ECartItemsS');
+                        var zeroValues = items.filter(function(item){return ( item.get('quantity') === 0 || item.get('quantity') === '0'); });
+                        //if we found an 0 quantites, then open the modal
+                        if(zeroValues.length > 0){
+                            //popup the modal
+                            this.openRemoveModal( event, zeroValues, false);
+                            //else just go ahead and save the changes to the model
+                        } else {
+                            this.saveToModel(event);
+                        }
+                    } else {
+                        this.saveToModel(event);
+                    }
+                },
+                saveToModel : function(event){
+                    var view = this;
+                    if (view.parent.params.hasChanged) {
+                        this.parent.model.saveChanges(view, function(response){
+                            if (response.success) {
+                                this.attrQtyChanged = false;
+                                CCRZ.pubSub.trigger('cartChange', CCRZ.pagevars.currentCartID);
+                            }
+                            CCRZ.pubSub.trigger("pageMessage", response);
+                        });
+                    }
+                },
+                qtyKeyPress: function(event) {
+                    return CCRZ.util.isValidNumericInput(event);
+                },
+                changeQuantity: function(event) {
+                    var objLink = $(event.target);
+                    var matchId = objLink[0].getAttribute("id").replace("entry_", "");
+                    var qty = parseInt(objLink.val());
+
+                    var scrubbedQty = CCRZ.util.scrubQuantity(qty);
+                    var revertQty = false;
+                    //based on page config...if true allow 0s else revert 0s
+                    if(CCRZ.pagevars.pageConfig.isTrue('c.noqty')){
+                        revertQty = (qty !== scrubbedQty);
+                    }else{
+                        revertQty = (qty !== scrubbedQty || qty < 1);
+                    }
+
+                    if(revertQty) {
+                        CCRZ.pubSub.trigger("pageMessage", CCRZ.createPageMessage('WARN', "messagingSection-Warning", 'Invalid_Qty'));
+                        this.revertItemQty(matchId, objLink);
+                    } else {
+                        this.updateItemQty(event, matchId, scrubbedQty);
+                    }
+                },
+                addSingleQty: function(event){
+                    this.adjustQty(event, 1, '.item_qtyIncrement');
+                },
+                removeSingleQty: function(event){
+                    this.adjustQty(event, -1, '.item_qtyIncrement');
+                },
+                addSkipQty: function(event){
+                    this.adjustQty(event, 1, '.item_qtySkipIncrement');
+                },
+                removeSkipQty: function(event){
+                    this.adjustQty(event, -1, '.item_qtySkipIncrement');
+                },
+                adjustQty: function(event, direction, multipler) {
+                    var p = $(event.currentTarget).parent();
+                    p = $(event.currentTarget).closest( ".gp_quantity_block");
+                    var objItems = p.find(".entry");
+                    if (objItems) {
+                        var incr = p.find(multipler);
+                        var increment = 1;
+                        if (incr)
+                            increment = parseInt(incr.val());
+                        var qty = parseInt(objItems.val());
+                        if (direction > 0 || qty >= increment)
+                            qty = qty + direction*increment;
+                        else
+                            qty = 0;
+
+                        if(CCRZ.pagevars.pageConfig.isTrue('c.noqty')){
+                            //allow 0 and update the qty
+                            objItems.val(qty);
+                            this.updateItemQty(event, p.data("id"), qty);
+                        }else{
+                            //only update if the qty is greater than 0
+                            if(qty > 0){
+                                objItems.val(qty);
+                                this.updateItemQty(event, p.data("id"), qty);
+                            }
+                        }
+                    }
+                },
+                updateItemQty: function(event, matchId, qty) {
+                    var view = this;
+                    if(!qty) {
+                        qty = 0;
+                    }
+                    var items = this.parent.model.get('ECartItemsS');
+                    var matchingLines = items.where({'sfid': matchId });
+                    if (matchingLines && matchingLines.length > 0) {
+                        //only set the previous quantity if the quantity is not 0
+                        if (matchingLines[0].get('quantity') > 0) {
+                            matchingLines[0].set('previousQuantity', matchingLines[0].get('quantity'));
+                        }
+                        matchingLines[0].set('quantity', qty);
+                        $('.cc_save_changes_sel_'+matchId).show();
+                    } else {
+                        view.updateAttributeItemQty(event, matchId, qty);
+                    }
+                    view.updateTiersSelection(matchId, qty);
+                    view.parent.params.hasChanged = true;
+                },
+                revertItemQty: function(matchId, qtyInput) {
+                    // revert the qty input text to the qty in the model for the given item
+                    var items = this.parent.model.get('ECartItemsS');
+                    var matchingLines = items.where({'sfid': matchId });
+                    if(matchingLines && matchingLines.length > 0){
+                        qtyInput.val(matchingLines[0].get('quantity'));
+                    } else {
+                        this.revertAttributeItemQty(matchId, qtyInput);
+                    }
+                },
+                revertAttributeItemQty: function(matchId, qtyInput) {
+                    var attributeItems = this.parent.model.get('ECartItemsS').where({pricingType: "attrGroup"});
+                    if(attributeItems) {
+                        return _.each(attributeItems, function(item) {
+                            _.each(item['minorLines'], function(line){
+                                if(line.sfid === matchId){
+                                    qtyInput.val(line.quantity);
+                                }
+                            });
+                        });
+                    }
+                },
+                updateAttributeItemQty: function(event, matchId, qty) {
+                    var view = this;
+                    var p;
+                    p = $(event.target).closest( ".gp_quantity_block");
+                    var objLink = p.find(".entry");
+                    var attributeItems = this.model.get('ECartItemsS').where({pricingType: "attrGroup"});
+                    if(attributeItems) {
+                        this.attrQtyChanged = true;
+                        // if qty changed but not upated, revert qty upon closing of modal
+                        $('.gp_cart_attribute_items_modal').on('hidden.bs.modal', function (e) {
+                            if(view.attrQtyChanged) {
+                                return _.each(attributeItems, function(item) {
+                                    _.each(item['minorLines'], function(line){
+                                        if(line.sfid === matchId){
+                                            objLink.val(line.originalQuantity);
+                                            line.quantity = line.originalQuantity;
+                                            item.attrQtyChanged = false;
+                                        }
+                                    });
+                                });
+                            }
+                            view.attrQtyChanged = false;
+                        });
+                        return _.each(attributeItems, function(item) {
+                            _.each(item['minorLines'], function(line){
+                                if(line.sfid === matchId){
+                                    line.previousQuantity = line.quantity;
+                                    line.quantity = qty;
+                                    item.attrQtyChanged = true;
+                                }
+                            });
+                        });
+                    }
+                },
+                updateTiersSelection: function(selId, qty){
+                    var tierList = $('.cc_prt_sel_'+selId);
+                    if(!_.isEmpty(tierList)){
+                        $('.cc_prt_sel_'+selId).removeClass('cc_prt_tier_box_selected bg-info').addClass('cc_prt_tier_box_unselected');
+                        _.each(tierList, function(currentTier) {
+                            if(parseFloat(currentTier.dataset.qty) <= parseFloat(qty) && ((currentTier.dataset.max === null || currentTier.dataset.max === undefined) || currentTier.dataset.max.trim().length === 0 || parseFloat(currentTier.dataset.max) >= parseFloat(qty))){
+                                $('.cc_prt_sel_'+selId+'_'+currentTier.dataset.qty).removeClass('cc_prt_tier_box_unselected').addClass('cc_prt_tier_box_selected bg-info');
+                            }
+                        });
+                    }
+                },
+                fetchPricingTiers: function(event){
+                    var objLink = $(event.currentTarget);
+                    var view = this;
+                    var cartItem = null;
+                    var prodID = null;
+
+                    var cartItems = this.model.get('ECartItemsS');
+                    _.each(cartItems.models, function(cItem) {
+                        if(cItem.get('sfid') === objLink.data("id")){
+                            cartItem = cItem;
+                            return false;
+                        }
+                    });
+
+                    if(cartItem.tpView && view.tpSubViews){
+
+                        if(view.tpSubViews[cartItem.tpView]){
+                            view.tpSubViews[cartItem.tpView].render(cartItem.get('sfid'), cartItem.get('tiersList'));
+                        }
+                    } else {
+                        prodID = cartItem.get('product').sfid;
+
+                        view.invokeContainerLoadingCtx($('.deskLayout'), 'fetchPricingTiers', prodID, function(response, event){
+                            if (response.success && event.status) {
+
+                                var qty = $('#entry_'+cartItem.get('sfid')).val();
+                                var previousTier = null;
+                                var tierList = [];
+
+                                _.each(response.data.tiers, function(currentTier) {
+                                    currentTier.itemId = cartItem.get('sfid');
+                                    currentTier.selClass = 'cc_prt_tier_box_unselected';
+                                    currentTier.uoml = cartItem.get('productR').unitOfMeasureLabel;
+                                    if(!_.isEmpty(previousTier)){
+                                        previousTier.max = currentTier.q - 1;
+                                    }
+
+                                    if(currentTier.q <= qty){
+                                        currentTier.selClass = 'cc_prt_tier_box_selected bg-info';
+                                        if(!_.isEmpty(previousTier)){
+                                            previousTier.selClass = 'cc_prt_tier_box_unselected';
+                                        }
+                                    }
+
+                                    tierList.push(currentTier);
+                                    previousTier = currentTier;
+                                });
+
+                                if(!_.isEmpty(tierList)){
+                                    cartItem.set('tiersList', tierList);
+                                    var tpView = new CCRZ.views.tierPricingView();
+                                    tpView.render(cartItem.get('sfid'), tierList);
+                                    if(!view.tpSubViews){
+                                        view.tpSubViews = {};
+                                    }
+                                    view.tpSubViews[tpView.cid] = tpView;
+                                    cartItem.tpView = tpView.cid;
+                                }
+
+                            }
+                            else {
+                                CCRZ.pubSub.trigger("pageMessage", response);
+                            }
+                        });
+                    }
+                },
+
+                removeInvalidItems: function(event){
+                    var objLink = $(event.currentTarget);
+                    var parentElement = objLink.parents(".cart_item");
+                    var sfid = objLink.data("id");
+                    var view = this;
+
+                    view.parent.invokeContainerLoadingCtx($('.deskLayout'), 'removeInvalidItemsFromCart', function (response, event) {
+                        if (response.success && event.status) {
+                            var items = view.parent.model.get('ECartItemsS')
+                                ,item = items.where({'sfid': sfid });
+                            items.remove(item);
+                            if (items.length < 1) {
+                                view.model.state.currentPage = Math.max(1,view.model.state.currentPage-1);
+                            }
+                            view.parent.refreshCartDetailViews(function (response, event){
+                                CCRZ.pubSub.trigger('cartChange', CCRZ.pagevars.currentCartID);
+                            });
+                        }
+                        $('#removeInvalidModal').modal('hide');
+                    }, {escape: false, timeout: 120000});
+
+                },
+                removeItem: function(event) {
+                    var objLink = $(event.currentTarget);
+                    var parentElement = objLink.parents(".cart_item");
+                    var sfid = objLink.data("id");
+                    var view = this;
+
+                    view.parent.invokeContainerLoadingCtx($('.deskLayout'), 'removeItemFromCart', sfid, function (response, event) {
+                        if (response.success && event.status) {
+                            parentElement.fadeOut(2500);
+                            var items = view.parent.model.get('ECartItemsS')
+                                ,item = items.where({'sfid': sfid });
+                                items.remove(item);
+                            if (items.length < 1) {
+                                view.model.state.currentPage = Math.max(1,view.model.state.currentPage-1);
+                            }
+                            view.parent.refreshCartDetailViews(function (response, event){
+                                CCRZ.pubSub.trigger('cartChange', CCRZ.pagevars.currentCartID);
+                            });
+                        }
+                    }, {escape: false, timeout: 120000});
+
+                },
+                removeAttributeItem: function(event) {
+                    var objLink = $(event.currentTarget);
+                    var parentElement = objLink.parents(".cart_item");
+                    var sfid = objLink.data("id");
+                    var parentId = objLink.data("group");
+                    var view = this;
+                    var cartId = view.model.get('sfid');
+                    var attributeItems = this.model.get('ECartItemsS').where({sfid: parentId});
+
+                    view.invokeContainerLoadingCtx($('.deskLayout'), 'removeItemFromCart', sfid, function (response, event) {
+                        if (response.success && event.status) {
+                            view.model.priceFetch(view.parent.params.skipAutoCalc, function (response, event){
+                                CCRZ.pubSub.trigger('cartChange', CCRZ.pagevars.currentCartID);
+                                CCRZ.pubSub.trigger("action:"+view.viewName+":cartItemsRefreshed", view);
+                                view.render();
+                            });
+                        }
+                    }, {escape: false, timeout: 120000});
+
+                },
+                openRemoveModal: function(event, zeroValues, isCheckout) {
+                    var objLink = $(event.currentTarget);
+                    var modalData = {"zeroValues":zeroValues, "isCheckout":isCheckout};
+                    var modalView = new CCRZ.views.removeModal();
+                    modalView.render(modalData, function() {
+                        $('#removeMod').modal({ keyboard: false, backdrop: 'static', show: true });
+                    });
+                },
+                closeRemoveModal: function(event){
+                    //called when closing the modal, and allowing 0 to remove the items from the cart
+                    var view = this;
+                    var objLink = $(event.currentTarget);
+                    //if this is a checkout, then save the model a bit differently and then call checkout
+                    if(objLink.data("ischeckout")){
+                        this.saveAndCheckout(event);
+                    }else{
+                        //actaully save the model which will remove the items with 0 from the cart
+                        this.saveToModel(event);
+                    }
+
+                    //close the modal
+                    $('#removeMod').modal('hide');
+                },
+                closeRevertRemoveModal: function(event){
+                    //called when we first have to revert to the previous value
+                    var objLink = $(event.currentTarget);
+                    var zeroValues = objLink.data("zeros");
+                    //for each zeroValue, revert the value to the previous quantity
+                    for(index = 0; index < zeroValues.length; index++){
+                        //set to the previous quantity, first get the element
+                        qtyElement = $('#entry_'+zeroValues[index]['sfid']);
+                        qtyElement.val(zeroValues[index].previousQuantity);
+                        qtyElement.change();
+                    }
+                    //now with the 0s removed, we can Call the existing save cart function and it will update the model
+                    this.saveToModel(event);
+                    //close the modal
+                    $('#removeMod').modal('hide');
+                },
+                displayIncludedItems: function (event) { // Not supported for Cart Scale/ Does not fully function
+                    var view = this;
+                    var model = view.model;
+                    var objLink = $(event.currentTarget);
+                    var sfid = objLink.data("id");
+                    var qtyRules = model.get('qtyRules');
+
+                    var majorItem = view.model.get('ECartItemsS').models.filter(function(item) { return item.get('sfid') === sfid });
+                    majorItem = majorItem[0];
+                    if(majorItem.refetchMinors === true){
+                        majorItem.minorLines = null;
+                        majorItem.refetchMinors = false;
+                    }
+                    if(null != majorItem['minorLines']) {
+                        // render minor lines
+                        majorItem['minorLines'] = majorItem.get('minorData');
+                        var incItemView;
+                        if(majorItem.get('pricingType') === 'attrGroup'){
+                            incItemView = new CCRZ.views.attributeItemsBodyView();
+                        }else{
+                            incItemView = new CCRZ.views.includedItemsBodyView();
+                        }
+                        incItemView.render(sfid, majorItem);
+                    } else {
+                        // If this major has no minorLines, then fetch and generate them
+                        var minorsIdArray = new Array();
+                        majorItem.get('minorData').forEach(function (item) {
+                            minorsIdArray.push(item['sfid']);
+                        });
+
+                        var minorsIdArrayJSON = JSON.stringify(minorsIdArray);
+
+                        view.invokeContainerLoadingCtx($('.deskLayout'), 'fetchMinorCartItemsData', minorsIdArrayJSON, function (response, event) {
+                            if (response.success && event.status) {
+                                var minorsProdData = response.data;
+                                var minorsAttributeData = minorsProdData['attributeList'];
+                                minorsProdData = minorsProdData['minorProductList'];
+                                if (null != minorsProdData) {
+                                    majorItem.get('minorData').forEach(function (item) {
+                                        item['product'] = minorsProdData[item['productR']['sfid']];
+
+                                        //If this is an ADC product, stitch in the Attributes
+                                        if (null != minorsAttributeData && !_.isEmpty(minorsAttributeData)) {
+                                            //Put the display names of the attributes in this list on the major for the table headings
+                                            majorItem.topAttributes = [];
+
+                                            //Stitch the attribute data to the products
+                                            if(item['primaryAttr']) {
+                                                item['primaryAttr'] = minorsAttributeData[item['primaryAttrR']['sfid']];
+                                                majorItem.topAttributes.push(_.find(minorsAttributeData, function (a) {
+                                                    return a.sfid === item.primaryAttr.parentAttribute;
+                                                }));
+                                                //Process Quantity Rules for Attribute Items
+                                                if (qtyRules && qtyRules[item['product']['SKU']]) {
+                                                    item['qtyIncrement'] = qtyRules[item['product']['SKU']].Increment;
+                                                    item['qtySkipIncrement'] = qtyRules[item['product']['SKU']].SkipIncrement;
+                                                } else {
+                                                    item['qtyIncrement'] = 1;
+                                                }
+                                            }
+                                            if(item['secondaryAttr']) {
+                                                item['secondaryAttr'] = minorsAttributeData[item['secondaryAttrR']['sfid']];
+                                                majorItem.topAttributes.push(_.find(minorsAttributeData, function (a) {
+                                                    return a.sfid === item.secondaryAttr.parentAttribute;
+                                                }));
+                                            }
+                                            if(item['tertiaryAttr']) {
+                                                item['tertiaryAttr'] = minorsAttributeData[item['tertiaryAttrR']['sfid']];
+                                                majorItem.topAttributes.push(_.find(minorsAttributeData, function (a) {
+                                                    return a.sfid === item.tertiaryAttr.parentAttribute;
+                                                }));
+                                            }
+                                        }
+                                    });
+                                }
+
+                                majorItem['minorLines'] = majorItem.get('minorData');
+                                var incItemView;
+                                if(majorItem.get('pricingType') === 'attrGroup'){
+                                    incItemView = new CCRZ.views.attributeItemsBodyView();
+                                }else{
+                                    incItemView = new CCRZ.views.includedItemsBodyView();
+                                }
+                                incItemView.render(sfid, majorItem);
+                            }
+                        }, {escape: false, timeout: 120000});
+                    }
+                }
+            });
+
+
+    /*CCRZ.pubSub.on("action:CartDetailView:refresh", function(viewInstance){
+                        v.model.fetch(v.params.skipAutoCalc, JSON.stringify(v.model.searchFormData), function(response){
+                            CCRZ.pubSub.trigger('cartChange', CCRZ.pagevars.currentCartID);
+                            v.render();
+                            CCRZ.pubSub.trigger('pageMessage', viewInstance);
+                        });
+                    }); */
+            /* CCRZ.pubSub.on("view:CartDetailView:refresh", function (viewInstance) {
+                viewInstance.pickerView.refresh();
+                if (isCartDetailsNotRefreshed) {
+                    isCartDetailsNotRefreshed = false;
+                    setCartItemsDetailsData(viewInstance.model.attributes.ECartItemsS, CCRZ.views.CartDetailView.prototype, viewInstance);
+                    viewInstance.setElement(viewInstance.$el);
+                }
+                
+                if(CCRZ.headerModel.attributes.locale === "fr_CA") {
+                    $('.prod-attr-row').css('display', 'block').find('.prod-attr').removeClass('col-lg-3').addClass('col-lg-6').css('width', '50%');
+                }
+                
+            }); */
+            
+            var setCartItemsDetailsData = function (cartItemModel, cartItemView, CartItemInst) {
+                var events = cartItemView.events;
+                events["change .restrictQuantity"] = "restrictZero";
+                events["keydown .restrictQuantity"] = "restrictQuantity";
+                events["input .restrictQuantity"] = "mobileInput";
+                cartItemView.restrictZero = function (event) {
+                    var id = $(event.target).closest('.quantity-block').data("id");
+                    var qty = $(event.currentTarget).parent().find('#entry_'+id).val();
+                    if (qty == "") {
+                        $(event.currentTarget).parent().find('#entry_'+id).val("0");
+                        qty = $(event.currentTarget).parent().find('#entry_'+id).val();
+                    }
+                    if (qty == "0" || qty == "00" || qty == "000") {
+                        $(event.currentTarget).parent().find('#entry_'+id).val("1");
+                        qty = $(event.currentTarget).parent().find('#entry_'+id).val();
+                    }
+                };
+                cartItemView.restrictQuantity = function (event) {
+                    var qty = event.target.value;
+                    if (qty.length >= 3 && event.keyCode <= 57 && event.keyCode >= 48) {
+                        event.stopPropagation();
+                        event.preventDefault();
+                    }
+                    if (event.target.value == "" && event.keyCode == 48) {
+                        event.stopPropagation();
+                        event.preventDefault();
+                        event.target.value = "1";
+                    }
+                };
+                cartItemView.mobileInput = function (event) {
+                    var id = $(event.target).closest('.quantity-block').data("id");
+                    $('#add_'+id).css('pointer-events', '');
+                    var prev_value = $(event.currentTarget).val()
+                    var correct_value = []
+                    var qty = event.target.value;
+                    if (isNaN(event.originalEvent.data)){
+                        for (var i=0; i<qty.length; i++) {
+                            if (!isNaN(prev_value[i])){
+                                correct_value.push(prev_value[i])
+                            }
+                        }
+                        $(event.currentTarget).val("")
+                        $(event.currentTarget).val(correct_value.join(""));
+                    }
+                    if (qty == "0" || qty == "00" || qty == "000") {
+                        $(event.currentTarget).val("1");
+                    }
+                };
+            };
+        });
+    </script>
+</apex:component>
